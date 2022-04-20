@@ -1,0 +1,19 @@
+version: '3.8' # compose 파일 버전 명시
+services:
+  db:
+    image: mysql:8.0
+    container_name: mysql # 컨테이너 이름 지정
+    restart: always
+    environment:
+      - MYSQL_DATABASE=test
+      - MYSQL_ROOT_PASSWORD=admin #mysql root password 지정
+      - MYSQL_USER=admin #생성할 mysql user 지정
+      - MYSQL_PASSWORD=admin #위에서 생성한 user password 지정
+    ports:
+      - '3306:3306'
+    volumes:
+      - db:/var/lib/mysql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql # 현재경로의 db폴더 하위의 init.sql파일을 도커 컨테이너와 연결함
+volumes:
+  db:
+    driver: local
