@@ -2,6 +2,10 @@ spring:
   profiles:
     active: local
 
+# 스프링 배치가 실행될때 Program arguments로 job.name 이 넘어오면 이름과 일치하는 job 실행
+# 없으면 NONE 할당됨
+spring.batch.job.names: ${job.name:NONE}
+
 ---
 spring:
   profiles: local
