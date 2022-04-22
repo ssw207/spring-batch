@@ -18,6 +18,7 @@ import org.springframework.context.annotation.Configuration;
 public class SimpleJobConfiguration {
     private final JobBuilderFactory jobBuilderFactory;
     private final StepBuilderFactory stepBuilderFactory;
+    private final SimpleJobTasklet simpleJobTasklet;
 
     /**
      * Batch Job Bean등록
@@ -29,21 +30,16 @@ public class SimpleJobConfiguration {
     @Bean
     public Job simpleJob1() {
         return jobBuilderFactory.get("simpleJob1") // simpleJob이름의 Batch Job 등록
-                .start(simpleStep1(null)) // Job이 simpleStep1 Batch Step을 실행
+                .start(simpleStep1()) // Job이 simpleStep1 Batch Step을 실행
                 .next(simpleStep2(null))
                 .build();
     }
 
-    @Bean
-    @JobScope
-    public Step simpleStep1(@Value("#{jobParameters[requestDate]}") String requestDate) {
+//    @Bean
+//    @JobScope
+    public Step simpleStep1() {
         return stepBuilderFactory.get("simpleStep1")
-                .tasklet((contribution, chunkContext) -> {
-                    //throw new IllegalArgumentException("step1 강제예외 발생");
-                    log.info(">>>>> simpleStep2 시작");
-                    log.info(">>>>> 요청일시 : {}", requestDate);
-                    return RepeatStatus.FINISHED;
-                })
+                .tasklet(simpleJobTasklet) // Job이 Step에 진입할때 Bean을 생성해서 주입, 이때 jobParameter도 같이 주입한다.
                 .build();
     }
 
