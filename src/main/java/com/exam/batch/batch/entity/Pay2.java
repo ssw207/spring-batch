@@ -32,4 +32,8 @@ public class Pay2 {
         this.txName = txName;
         this.txDateTime = txDateTime;
     }
+
+    public static Pay2 of(Pay pay) {
+        return new Pay2(pay.getAmount(), pay.getTxName(), pay.getTxDateTime());
+    }
 }
