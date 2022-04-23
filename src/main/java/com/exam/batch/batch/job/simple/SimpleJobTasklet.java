@@ -1,4 +1,4 @@
-package com.exam.batch.batch.job;
+package com.exam.batch.batch.job.simple;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.StepContribution;

@@ -1,4 +1,4 @@
-package com.exam.batch.batch.job;
+package com.exam.batch.batch.job.step;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
