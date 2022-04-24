@@ -81,7 +81,7 @@ DESC BATCH_JOB_INSTANCE;
 1. DB이관시 스프링 배치 메타데이터 테이블을 똑같이 이관해야함
    - 메타데이터의 jobInstnace, parameter정보를 이용하기 때문에 DB이관으로 데이터가 삭제되면 몆년치가 다 돌아가는 장애가 날수 있음
 2. 메타데이터에 의존하기때문에 jobName을 개발자가 실수 혹은 리팩토링으로 바꾸게되면 장애 발생함
-
+~~~~
 ## 결론
 1. 메타데이터를 이용시 문제가 많음
    - jobName과 DB이관시 메타데이터 역시 이관해야함을 명시해야함
@@ -102,3 +102,8 @@ DESC BATCH_JOB_INSTANCE;
 - 처리건수가 많다면? job 실행시 1억 row를 처리하는데 1건이 실패하면 모두 롤백해야할까?
 
 ## 해결법1. chunk 단위로 처리한다.
+
+# 3.문제해결 - processor를 여러단계로 실행하려면?
+
+# 참고 
+- https://jojoldu.tistory.com/category/Spring%20Batch
