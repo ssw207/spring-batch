@@ -22,7 +22,7 @@ import static org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType.
 public class TestDataSourceConfiguration {
 
     //Reader 쿼리가 수행될 테이블 생성
-    private static final String CREATE_SQL = "create table IF NOT EXISTS 'sales' (id bigint not null auto_increment, amount bigint not null, order_date date, order_no varchar(255), primary key (id)) engine=InnoDB;";
+    private static final String CREATE_SQL = "create table IF NOT EXISTS sales (id bigint not null auto_increment, amount bigint not null, order_date date, order_no varchar(255), primary key (id));";
 
     //테스트용 db실행
     @Bean
