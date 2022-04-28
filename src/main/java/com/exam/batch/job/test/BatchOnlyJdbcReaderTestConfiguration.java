@@ -30,9 +30,12 @@ public class BatchOnlyJdbcReaderTestConfiguration {
 
     private final DataSource dataSource;
 
-    @Value("${chunkSize:1000}")
-    private int CHUNK_SIZE;
+    private int chunkSize;
 
+    @Value("${chunkSize:1000}")
+    public void setChunkSize(int size) {
+        chunkSize = size;
+    }
 
     @Bean
     @JobScope
@@ -51,8 +54,8 @@ public class BatchOnlyJdbcReaderTestConfiguration {
 
         return new JdbcPagingItemReaderBuilder<SalesSum>()
                 .name("batchOnlyJdbcReaderTestJobReader")
-                .pageSize(CHUNK_SIZE)
-                .fetchSize(CHUNK_SIZE)
+                .pageSize(chunkSize)
+                .fetchSize(chunkSize)
                 .dataSource(dataSource)
                 .rowMapper(new BeanPropertyRowMapper<>(SalesSum.class))
                 .queryProvider(queryProvider.getObject())
