@@ -12,7 +12,6 @@ jpa:
     ddl-auto: none
   properties:
     hibernate:
-      #show_sql: true #system out? ????? ??????? ???? ??
       format_sql: true
 logging:
   level:
@@ -26,10 +25,10 @@ spring.batch.job.names: ${job.name:NONE}
 #logging.level.springframework.batch: debug
 
 ---
-spring:
-  sql:
-    schema: classpath:domain.sql
-    initialization-mode: always
+#spring:
+#  sql:
+#    schema: classpath:domain.sql
+#    initialization-mode: always
 
 ---
 spring:
