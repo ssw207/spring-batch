@@ -34,14 +34,13 @@ public class FileJob {
     private final EntityManagerFactory emf;
 
     @Bean
-    public Job job() {
+    public Job myFileJob() {
         return jobBuilderFactory.get("fileJob")
                 .start(fileStep())
                 .build();
     }
 
     @Bean
-    @StepScope
     public Step fileStep() {
         return stepBuilderFactory.get("fileStep")
                 .<ProduceVO, Product>chunk(10)
@@ -60,6 +59,7 @@ public class FileJob {
     }
 
     @Bean
+    @StepScope
     public FlatFileItemReader<ProduceVO> fileItemReader(@Value("#{jobParameters['reqYmd']}") String reqYmd) {
         return new FlatFileItemReaderBuilder<ProduceVO>()
                 .name("flatFile")
