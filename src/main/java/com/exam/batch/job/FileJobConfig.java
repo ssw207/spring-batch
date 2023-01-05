@@ -24,7 +24,7 @@ import javax.persistence.EntityManagerFactory;
 
 @Configuration
 @RequiredArgsConstructor
-public class FileJob {
+public class FileJobConfig {
 
     private final JobBuilderFactory jobBuilderFactory;
     private final StepBuilderFactory stepBuilderFactory;
