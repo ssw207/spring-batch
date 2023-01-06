@@ -5,25 +5,13 @@ spring:
   devtools:
     restart:
       enabled: false
+
   batch:
+    job:
+      names: ${job.name:NONE} # 스프링 배치가 실행될때 Program arguments로 job.name 이 넘어오면 이름과 일치하는 job 실행
     jdbc:
       initialize-schema: always
 
-
---- # batch 설정
-# 스프링 배치가 실행될때 Program arguments로 job.name 이 넘어오면 이름과 일치하는 job 실행
-# 없으면 NONE 할당됨
-#spring.batch.job.names: ${job.name:NONE}
-
----
-#spring:
-#  sql:
-#    schema: classpath:domain.sql
-#    initialization-mode: always
-
----
-spring:
-  profiles: local
   datasource:
     hikari:
       jdbc-url: jdbc:h2:tcp://localhost/~/batch
@@ -31,15 +19,5 @@ spring:
       password:
       driver-class-name: org.h2.Driver
 
-  spring:
-    h2:
-      console.enabled: false
----
-spring:
-  profiles: mysql
-  datasource:
-    hikari:
-      jdbc-url: jdbc:mysql://localhost:3306/test
-      username: admin
-      password: admin
-      driver-class-name: com.mysql.jdbc.Driver
+  h2:
+    console.enabled: false
