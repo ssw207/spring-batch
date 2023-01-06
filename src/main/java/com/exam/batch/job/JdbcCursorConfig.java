@@ -1,28 +1,20 @@
 package com.exam.batch.job;
 
-import com.exam.batch.domain.Product;
-import com.exam.batch.domain.ProductVO;
-import com.exam.batch.processor.FileitemProcessor;
-import lombok.RequiredArgsConstructor;
+import javax.sql.DataSource;
+
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
-import org.springframework.batch.core.configuration.annotation.StepScope;
-import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.database.builder.JdbcCursorItemReaderBuilder;
-import org.springframework.batch.item.database.builder.JpaItemWriterBuilder;
-import org.springframework.batch.item.file.FlatFileItemReader;
-import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
-import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.ClassPathResource;
 
-import javax.sql.DataSource;
+import com.exam.batch.domain.Product;
+
+import lombok.RequiredArgsConstructor;
 
 @Configuration
 @RequiredArgsConstructor
@@ -50,7 +42,7 @@ public class JdbcCursorConfig {
         return stepBuilderFactory.get("jdbcCursorStep")
                 .<Product, Product>chunk(10)
                 .reader(jdbcCursorReader())
-                .writer(fileWriter())
+                .writer(jdbcWriter())
                 .build();
     }
 
@@ -67,7 +59,7 @@ public class JdbcCursorConfig {
 
 
     @Bean
-    public ItemWriter<Object> fileWriter() {
+    public ItemWriter<Object> jdbcWriter() {
         return items -> {
             items.forEach(System.out::println);
         };
