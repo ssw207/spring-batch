@@ -8,7 +8,7 @@ spring:
 
   batch:
     job:
-      names: ${job.name:NONE} # 스프링 배치가 실행될때 Program arguments로 job.name 이 넘어오면 이름과 일치하는 job 실행
+      names: ${job.name:myFileJob} # 스프링 배치가 실행될때 Program arguments로 job.name 이 넘어오면 이름과 일치하는 job 실행
     jdbc:
       initialize-schema: always
 
@@ -21,3 +21,8 @@ spring:
 
   h2:
     console.enabled: false
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    # show-sql: true # DDL 출력
