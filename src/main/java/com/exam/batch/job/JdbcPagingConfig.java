@@ -2,10 +2,14 @@ package com.exam.batch.job;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.sql.DataSource;
 
 import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.batch.core.JobParametersIncrementer;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
@@ -27,63 +31,75 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class JdbcPagingConfig {
 
-    private final JobBuilderFactory jobBuilderFactory;
-    private final StepBuilderFactory stepBuilderFactory;
-    private final DataSource dataSource;
-    
-    @Bean
-    public Job jdbcPagingJob() throws Exception {
-        return jobBuilderFactory.get("jdbcPagingJob")
-                .start(jdbcPagingStep())
-                .build();
-    }
+	private final JobBuilderFactory jobBuilderFactory;
+	private final StepBuilderFactory stepBuilderFactory;
+	private final DataSource dataSource;
 
-    @Bean
-    public Step jdbcPagingStep() throws Exception {
-        return stepBuilderFactory.get("jdbcPagingStep")
-                .<Product, Product>chunk(10)
-                .reader(jdbcPagingReader())
-                .writer(jdbcPagingWriter())
-                .build();
-    }
+	@Bean
+	public Job jdbcPagingJob() throws Exception {
+		return jobBuilderFactory.get("jdbcPagingJob")
+			.start(jdbcPagingStep())
+			.incrementer(getIncrementer())
+			.build();
+	}
 
-    @Bean
-    public ItemReader<Product> jdbcPagingReader() throws Exception {
-        Map<String, Object> parameterValues = new HashMap<>();
-        parameterValues.put("price", 10);
+    private JobParametersIncrementer getIncrementer() {
+        return parameters -> {
+            JobParameters jobParameters = Optional.ofNullable(parameters)
+                .orElse(new JobParameters());
 
-        return new JdbcPagingItemReaderBuilder<Product>()
-            .name("jdbcPagingReader")
-            .pageSize(10)
-            .dataSource(dataSource)
-            .rowMapper(new BeanPropertyRowMapper<>(Product.class))
-            .queryProvider(createQueryProvider())
-            .parameterValues(parameterValues)
-            .build();
-    }
-
-    @Bean
-    public PagingQueryProvider createQueryProvider() throws Exception {
-
-        SqlPagingQueryProviderFactoryBean queryProvider = new SqlPagingQueryProviderFactoryBean();
-        queryProvider.setDataSource(dataSource);
-        queryProvider.setSelectClause("id, name,price");
-        queryProvider.setFromClause("from product");
-        queryProvider.setWhereClause("where price >= :price");
-        queryProvider.setSortKey("id");
-
-        Map<String, Order> sortKeys = new HashMap<>();
-        sortKeys.put("id", Order.ASCENDING);
-
-        queryProvider.setSortKeys(sortKeys);
-
-        return queryProvider.getObject();
-    }
-
-    @Bean
-    public ItemWriter<Object> jdbcPagingWriter() {
-        return items -> {
-            items.forEach(System.out::println);
+            return new JobParametersBuilder(jobParameters)
+                .addLong("time", System.currentTimeMillis())
+                .toJobParameters();
         };
     }
+
+    @Bean
+	public Step jdbcPagingStep() throws Exception {
+		return stepBuilderFactory.get("jdbcPagingStep")
+			.<Product, Product>chunk(10)
+			.reader(jdbcPagingReader())
+			.writer(jdbcPagingWriter())
+			.build();
+	}
+
+	@Bean
+	public ItemReader<Product> jdbcPagingReader() throws Exception {
+		Map<String, Object> parameterValues = new HashMap<>();
+		parameterValues.put("price", 10);
+
+		return new JdbcPagingItemReaderBuilder<Product>()
+			.name("jdbcPagingReader")
+			.pageSize(10)
+			.dataSource(dataSource)
+			.rowMapper(new BeanPropertyRowMapper<>(Product.class))
+			.queryProvider(createQueryProvider())
+			.parameterValues(parameterValues)
+			.build();
+	}
+
+	@Bean
+	public PagingQueryProvider createQueryProvider() throws Exception {
+
+		SqlPagingQueryProviderFactoryBean queryProvider = new SqlPagingQueryProviderFactoryBean();
+		queryProvider.setDataSource(dataSource);
+		queryProvider.setSelectClause("id, name,price");
+		queryProvider.setFromClause("from product");
+		queryProvider.setWhereClause("where price >= :price");
+		queryProvider.setSortKey("id");
+
+		Map<String, Order> sortKeys = new HashMap<>();
+		sortKeys.put("id", Order.ASCENDING);
+
+		queryProvider.setSortKeys(sortKeys);
+
+		return queryProvider.getObject();
+	}
+
+	@Bean
+	public ItemWriter<Object> jdbcPagingWriter() {
+		return items -> {
+			items.forEach(System.out::println);
+		};
+	}
 }
