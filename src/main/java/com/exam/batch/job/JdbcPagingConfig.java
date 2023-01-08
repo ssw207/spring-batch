@@ -17,12 +17,14 @@ import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.database.Order;
 import org.springframework.batch.item.database.PagingQueryProvider;
+import org.springframework.batch.item.database.builder.JdbcBatchItemWriterBuilder;
 import org.springframework.batch.item.database.builder.JdbcPagingItemReaderBuilder;
 import org.springframework.batch.item.database.support.SqlPagingQueryProviderFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 
+import com.exam.batch.domain.Customer;
 import com.exam.batch.domain.Product;
 
 import lombok.RequiredArgsConstructor;
@@ -57,7 +59,7 @@ public class JdbcPagingConfig {
     @Bean
 	public Step jdbcPagingStep() throws Exception {
 		return stepBuilderFactory.get("jdbcPagingStep")
-			.<Product, Product>chunk(10)
+			.<Product, Customer>chunk(10)
 			.reader(jdbcPagingReader())
 			.writer(jdbcPagingWriter())
 			.build();
@@ -97,9 +99,11 @@ public class JdbcPagingConfig {
 	}
 
 	@Bean
-	public ItemWriter<Object> jdbcPagingWriter() {
-		return items -> {
-			items.forEach(System.out::println);
-		};
+	public ItemWriter<Customer> jdbcPagingWriter() {
+		return new JdbcBatchItemWriterBuilder<Customer>()
+			.dataSource(dataSource)
+			.sql("INSERT INTO CUSTOMER (ID, NAME) VALUES (:id, :name)")
+			.beanMapped() // Customer의 필드명과 SQL의 파라미터명이 같아야 한다.
+			.build();
 	}
 }
