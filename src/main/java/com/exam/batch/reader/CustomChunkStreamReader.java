@@ -32,7 +32,7 @@ public class CustomChunkStreamReader implements ItemStreamReader<String> {
 		String item = items.get(index);
 		index++;
 
-		if (index == 6 && restart) {
+		if (index == 6 && !restart) {
 			log.info("Restarting the job");
 			throw new RuntimeException("Restarting the job");
 		}
