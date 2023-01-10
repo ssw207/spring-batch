@@ -1,0 +1,31 @@
+spring:
+  profiles:
+    active: local
+
+  devtools:
+    restart:
+      enabled: false
+
+  batch:
+    job:
+      names: ${job.name:myFileJob} # 스프링 배치가 실행될때 Program arguments로 job.name 이 넘어오면 이름과 일치하는 job 실행
+    jdbc:
+      initialize-schema: always
+
+#  datasource:
+#    hikari:
+#      jdbc-url: jdbc:h2:tcp://localhost/~/batch
+#      username: sa
+#      password:
+#      driver-class-name: org.h2.Driver
+
+  h2:
+    console.enabled: false
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
