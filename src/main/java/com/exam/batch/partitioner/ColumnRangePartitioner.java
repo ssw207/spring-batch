@@ -1,12 +1,14 @@
 package com.exam.batch.partitioner;
 
-import lombok.Setter;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.persistence.EntityManager;
+
 import org.springframework.batch.core.partition.support.Partitioner;
 import org.springframework.batch.item.ExecutionContext;
 
-import javax.persistence.EntityManager;
-import java.util.HashMap;
-import java.util.Map;
+import lombok.Setter;
 
 @Setter
 public class ColumnRangePartitioner implements Partitioner {
@@ -24,13 +26,10 @@ public class ColumnRangePartitioner implements Partitioner {
      */
     @Override
     public Map<String, ExecutionContext> partition(int gridSize) {
-        String minStr = entityManager.createQuery("SELECT MIN(t." + column + ") FROM " + entityName + " t ", String.class).getSingleResult();
-        String maxStr = entityManager.createQuery("SELECT MAX(t." + column + ") FROM " + entityName + " t ", String.class).getSingleResult();
-        int min = Integer.parseInt(minStr);
-        System.out.println("min = " + min);
-        int max = Integer.parseInt(maxStr);
-        System.out.println("max = " + max);
-        int targetSize = (max - min) / gridSize + 1;
+        int min = entityManager.createQuery("SELECT MIN(t." + column + ") FROM " + entityName + " t ", Long.class).getSingleResult().intValue();
+        int max = entityManager.createQuery("SELECT MAX(t." + column + ") FROM " + entityName + " t ", Long.class).getSingleResult().intValue();
+
+        int targetSize = max - min / gridSize + 1;
 
         Map<String, ExecutionContext> result = new HashMap<>();
         int number = 0;
