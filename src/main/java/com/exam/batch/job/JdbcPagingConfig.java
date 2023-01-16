@@ -33,14 +33,16 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class JdbcPagingConfig {
 
+	private static final String PREFIX = "JdbcPagingConfig";
+
 	private final JobBuilderFactory jobBuilderFactory;
 	private final StepBuilderFactory stepBuilderFactory;
 	private final DataSource dataSource;
 
-	@Bean
-	public Job jdbcPagingJob() throws Exception {
-		return jobBuilderFactory.get("jdbcPagingJob")
-			.start(jdbcPagingStep())
+	@Bean(name = PREFIX + "Job")
+	public Job job() throws Exception {
+		return jobBuilderFactory.get(PREFIX + "Job")
+			.start(step())
 			.incrementer(getIncrementer())
 			.build();
 	}
@@ -56,17 +58,17 @@ public class JdbcPagingConfig {
         };
     }
 
-    @Bean
-	public Step jdbcPagingStep() throws Exception {
-		return stepBuilderFactory.get("jdbcPagingStep")
+    @Bean(name = PREFIX + "Step")
+	public Step step() throws Exception {
+		return stepBuilderFactory.get(PREFIX + "Step")
 			.<Product, Customer>chunk(10)
-			.reader(jdbcPagingReader())
-			.writer(jdbcPagingWriter())
+			.reader(reader())
+			.writer(writer())
 			.build();
 	}
 
-	@Bean
-	public ItemReader<Product> jdbcPagingReader() throws Exception {
+	@Bean(name = PREFIX + "Reader")
+	public ItemReader<Product> reader() throws Exception {
 		Map<String, Object> parameterValues = new HashMap<>();
 		parameterValues.put("price", 10);
 
@@ -80,7 +82,7 @@ public class JdbcPagingConfig {
 			.build();
 	}
 
-	@Bean
+	@Bean(name = PREFIX + "CreateQueryProvider")
 	public PagingQueryProvider createQueryProvider() throws Exception {
 
 		SqlPagingQueryProviderFactoryBean queryProvider = new SqlPagingQueryProviderFactoryBean();
@@ -98,8 +100,8 @@ public class JdbcPagingConfig {
 		return queryProvider.getObject();
 	}
 
-	@Bean
-	public ItemWriter<Customer> jdbcPagingWriter() {
+	@Bean(name = PREFIX + "Writer")
+	public ItemWriter<Customer> writer() {
 		return new JdbcBatchItemWriterBuilder<Customer>()
 			.dataSource(dataSource)
 			.sql("INSERT INTO CUSTOMER (ID, NAME) VALUES (:id, :name)")

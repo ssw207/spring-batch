@@ -3,19 +3,22 @@ package com.exam.batch.partitioner;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.persistence.EntityManager;
 import javax.sql.DataSource;
 
 import org.springframework.batch.core.partition.support.Partitioner;
 import org.springframework.batch.item.ExecutionContext;
+import org.springframework.jdbc.core.JdbcTemplate;
 
-import lombok.Setter;
-
-@Setter
 public class ColumnRangePartitioner implements Partitioner {
-    private DataSource entityManager;
-    private String entityName;
+    private JdbcTemplate jdbcTeamplate;
+    private String tableName;
     private String column;
+
+    public ColumnRangePartitioner(DataSource dataSource, String tableName, String column) {
+        this.jdbcTeamplate = new JdbcTemplate(dataSource);
+        this.tableName = tableName;
+        this.column = column;
+    }
 
     /**
      * Partition a database table assuming that the data in the column specified are
@@ -27,8 +30,8 @@ public class ColumnRangePartitioner implements Partitioner {
      */
     @Override
     public Map<String, ExecutionContext> partition(int gridSize) {
-        int min = entityManager.createQuery("SELECT MIN(t." + column + ") FROM " + entityName + " t ", Long.class).getSingleResult().intValue();
-        int max = entityManager.createQuery("SELECT MAX(t." + column + ") FROM " + entityName + " t ", Long.class).getSingleResult().intValue();
+        int min = jdbcTeamplate.queryForObject("SELECT MIN(t." + column + ") FROM " + tableName + " t ", Integer.class);
+        int max = jdbcTeamplate.queryForObject("SELECT MAX(t." + column + ") FROM " + tableName + " t ",  Integer.class);
 
         int targetSize = max - min / gridSize + 1;
 

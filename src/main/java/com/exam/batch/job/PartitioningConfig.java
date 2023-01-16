@@ -9,15 +9,16 @@ import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.partition.support.Partitioner;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.database.Order;
-import org.springframework.batch.item.database.PagingQueryProvider;
 import org.springframework.batch.item.database.builder.JdbcBatchItemWriterBuilder;
 import org.springframework.batch.item.database.builder.JdbcPagingItemReaderBuilder;
 import org.springframework.batch.item.database.support.SqlPagingQueryProviderFactoryBean;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
@@ -27,8 +28,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import com.exam.batch.domain.Book;
 import com.exam.batch.domain.BookShop;
-import com.exam.batch.domain.Customer;
-import com.exam.batch.domain.Product;
 import com.exam.batch.listener.StopWatchJobListener;
 import com.exam.batch.partitioner.ColumnRangePartitioner;
 
@@ -39,23 +38,23 @@ import lombok.extern.slf4j.Slf4j;
 @Configuration
 @RequiredArgsConstructor
 public class PartitioningConfig {
-
+	private static final String PREFIX = "partitioning";
 	private final JobBuilderFactory jobBuilderFactory;
 	private final StepBuilderFactory stepBuilderFactory;
 	private final DataSource dataSource;
 
-	@Bean
-	public Job partitioningJob() throws Exception {
-		return jobBuilderFactory.get("partitioningJob")
+	@Bean(name = PREFIX + "Job")
+	public Job job() throws Exception {
+		return jobBuilderFactory.get(PREFIX + "Job")
 			.incrementer(new RunIdIncrementer())
 			.start(masterStep())
 			.listener(new StopWatchJobListener())// job 리스너 총실행시간을 측정한다
 			.build();
 	}
 
-	@Bean
+	@Bean(name = PREFIX + "MasterStep")
 	public Step masterStep() throws Exception {
-	    return stepBuilderFactory.get("masterStep")
+	    return stepBuilderFactory.get(PREFIX + "MasterStep")
 	        .partitioner(slaveStep().getName(), partitioner())
 	        .step(slaveStep())
 	        .gridSize(4)
@@ -63,57 +62,50 @@ public class PartitioningConfig {
 	        .build();
 	}
 
-	@Bean
+
 	public Partitioner partitioner() {
-		ColumnRangePartitioner partitioner = new ColumnRangePartitioner();
-		partitioner.setColumn("id");
+		ColumnRangePartitioner partitioner = new ColumnRangePartitioner(dataSource, "book", "id");
 		return partitioner;
 	}
 
-	@Bean
+	@Bean(name = PREFIX + "SlaveStep")
 	public Step slaveStep() throws Exception {
 		return stepBuilderFactory.get("slaveStep")
 			.<Book, BookShop>chunk(5)
-			.reader(jdbcPagingReader2())
-			.writer(jdbcPagingWriter2())
+			.reader(reader(null, null))
+			.writer(writer())
 			.build();
 	}
 
-	@Bean
-	public ItemReader<Book> jdbcPagingReader2() throws Exception {
-		Map<String, Object> parameterValues = new HashMap<>();
-		parameterValues.put("price", 10);
-
-		return new JdbcPagingItemReaderBuilder<Book>()
-			.name("jdbcPagingReader")
-			.pageSize(10)
-			.dataSource(dataSource)
-			.rowMapper(new BeanPropertyRowMapper<>(Book.class))
-			.queryProvider(createQueryProvider())
-			.parameterValues(parameterValues)
-			.build();
-	}
-
-	@Bean
-	public PagingQueryProvider createQueryProvider() throws Exception {
-
+	@StepScope
+	@Bean(name = PREFIX + "Reader")
+	public ItemReader<Book> reader(
+		@Value("#{stepExecutionContext['min']}") Long minValue,
+		@Value("#{stepExecutionContext['max']}") Long maxValue
+	) throws Exception {
 		SqlPagingQueryProviderFactoryBean queryProvider = new SqlPagingQueryProviderFactoryBean();
 		queryProvider.setDataSource(dataSource);
 		queryProvider.setSelectClause("id");
 		queryProvider.setFromClause("from book");
-		queryProvider.setSortKey("id");
+		queryProvider.setWhereClause("where id >= " + minValue + " and id < " + maxValue);
 
 		Map<String, Order> sortKeys = new HashMap<>();
 		sortKeys.put("id", Order.ASCENDING);
 
 		queryProvider.setSortKeys(sortKeys);
 
-		return queryProvider.getObject();
+		return new JdbcPagingItemReaderBuilder<Book>()
+			.name("jdbcPagingReader")
+			.pageSize(10)
+			.dataSource(dataSource)
+			.rowMapper(new BeanPropertyRowMapper<>(Book.class))
+			.queryProvider(queryProvider.getObject())
+			.build();
 	}
 
-	@Bean
-	public ItemWriter<Customer> jdbcPagingWriter2() {
-		return new JdbcBatchItemWriterBuilder<Customer>()
+	@Bean(name = PREFIX + "Writer")
+	public ItemWriter<BookShop> writer() {
+		return new JdbcBatchItemWriterBuilder<BookShop>()
 			.dataSource(dataSource)
 			.sql("INSERT INTO BOOK_SHOP (ID) VALUES (:id)")
 			.beanMapped() // Customer의 필드명과 SQL의 파라미터명이 같아야 한다.
