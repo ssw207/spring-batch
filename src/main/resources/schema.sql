@@ -6,6 +6,12 @@ create table product
     primary key (id)
 );
 
+create table book
+(
+    id bigint not null,
+    primary key (id)
+);
+
 create table book_shop
 (
     id bigint not null,

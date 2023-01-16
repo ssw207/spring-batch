@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.persistence.EntityManager;
+import javax.sql.DataSource;
 
 import org.springframework.batch.core.partition.support.Partitioner;
 import org.springframework.batch.item.ExecutionContext;
@@ -12,7 +13,7 @@ import lombok.Setter;
 
 @Setter
 public class ColumnRangePartitioner implements Partitioner {
-    private EntityManager entityManager;
+    private DataSource entityManager;
     private String entityName;
     private String column;
 
