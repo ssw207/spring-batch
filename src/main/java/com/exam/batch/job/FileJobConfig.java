@@ -1,9 +1,9 @@
 package com.exam.batch.job;
 
-import com.exam.batch.domain.ProductVO;
 import com.exam.batch.domain.Product;
-import com.exam.batch.processor.FileitemProcessor;
+import com.exam.batch.domain.ProductVO;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
@@ -26,33 +26,35 @@ import javax.persistence.EntityManagerFactory;
 @RequiredArgsConstructor
 public class FileJobConfig {
 
+    private static final String PREFIX = "file";
+
     private final JobBuilderFactory jobBuilderFactory;
     private final StepBuilderFactory stepBuilderFactory;
     private final EntityManagerFactory emf;
 
-    @Bean
+    @Bean(PREFIX + "Job")
     public Job myFileJob() {
-        return jobBuilderFactory.get("fileJob")
-                .start(fileStep())
+        return jobBuilderFactory.get(PREFIX + "Job")
+                .start(step())
                 .build();
     }
 
-    @Bean
-    public Step fileStep() {
-        return stepBuilderFactory.get("fileStep")
+    @Bean(PREFIX + "Step")
+    public Step step() {
+        return stepBuilderFactory.get(PREFIX + "Step")
                 .<ProductVO, Product>chunk(10)
-                .reader(fileItemReader(null))
-                .processor(fileItemProcessor())
-                .writer(fileWriter())
+                .reader(reader(null))
+                .processor(processor())
+                .writer(writer())
                 .build();
     }
 
-    @Bean
+    @Bean(PREFIX + "Reader")
     @StepScope
-    public FlatFileItemReader<ProductVO> fileItemReader(@Value("#{jobParameters['reqYmd']}") String reqYmd) {
+    public FlatFileItemReader<ProductVO> reader(@Value("#{jobParameters['reqYmd']}") String reqYmd) {
         return new FlatFileItemReaderBuilder<ProductVO>()
                 .name("flatFile")
-                .resource(new ClassPathResource("product_"+ reqYmd +".csv"))
+                .resource(new ClassPathResource("product_" + reqYmd + ".csv"))
                 .fieldSetMapper(new BeanWrapperFieldSetMapper<>())
                 .targetType(ProductVO.class)
                 .linesToSkip(1)
@@ -61,17 +63,23 @@ public class FileJobConfig {
                 .build();
     }
 
-    @Bean
-    public ItemWriter<Object> fileWriter() {
+    @Bean(PREFIX + "Writer")
+    public ItemWriter<Object> writer() {
         return new JpaItemWriterBuilder<>()
                 .entityManagerFactory(emf)
                 .usePersist(true)
                 .build();
     }
 
-    @Bean
-    public ItemProcessor<ProductVO, Product> fileItemProcessor() {
-        return new FileitemProcessor();
+    @Bean(PREFIX + "Processor")
+    public ItemProcessor<ProductVO, Product> processor() {
+        return item -> {
+
+            ModelMapper modelMapper = new ModelMapper();
+            Product product = modelMapper.map(item, Product.class);
+
+            return product;
+        };
     }
 }
 
