@@ -21,11 +21,13 @@ public class ApiJobChildConfig {
     private final Step apiSlaveStep;
     private final JobLauncher jobLauncher;
 
+
+    // TODO 왜이런구조로 했을까? Step에서 곧비로 tasklet을 실행하면 되는거 아닌가?
     @Bean(PREFIX + "Step")
-    public Step step() { // jop을 실행하는 step
+    public Step step() { // jop을 실행하는 step.
         return stepBuilderFactory.get(PREFIX + "Step")
                 .job(job())
-                .launcher(jobLauncher)
+                .launcher(jobLauncher) // job실행
                 .build();
     }
 

@@ -22,6 +22,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+
+/**
+ * 실제 비즈니스 로직을 수행하는 Step 설정 클래스
+ * 파티셔너를 통해 읽어온 row를 type값을 기준으로 분류해 나누고 멀티 쓰레드로 처리한다
+ * 한번에 N개 데이터를 읽어오로 N개 데이터를 3개의 쓰레드로 나눠서 처리함.
+ */
 @Configuration
 @RequiredArgsConstructor
 public class ApiStepConfig {
@@ -35,10 +41,10 @@ public class ApiStepConfig {
     @Bean
     public Step apiMasterStep() {
         return stepBuilderFactory.get("apiMasterStep")
-                .partitioner(apiSlaveStep().getName(), partitioner())
-                .step(apiSlaveStep())
-                .gridSize(3)
-                .taskExecutor(taskExecutor())
+                .partitioner(apiSlaveStep().getName(), partitioner()) // 파티셔너 설정
+                .step(apiSlaveStep()) // 실제 비즈니스를 처리하는 스탭. 각 스탭은 자신만의 stepExcution을 가진다
+                .gridSize(3) // 처리할 쓰레드수. 쓰레드 수에 맞춰 스탭이 복제된다.
+                .taskExecutor(taskExecutor()) // 멀티쓰레드를 처리할 쓰레드풀
                 .build();
     }
 
@@ -50,14 +56,15 @@ public class ApiStepConfig {
     @Bean
     public Step apiSlaveStep() {
         return stepBuilderFactory.get("apiSlaveStep")
-                .<ProductVO, ProductVO>chunk(CHUNK_SIZE)
-                .reader(itemReader(null))
+                .<ProductVO, ProductVO>chunk(CHUNK_SIZE) // <입력, 출력> 타입.
+                .reader(itemReader(null)) // 파라미터는 DI로 Step 생성시점에 주입된다.
                 .processor(itemPocessor())
                 .writer(itemWriter())
                 .build();
     }
 
     // stepExecutionContext는 쓰레드마다 가지고 있으므로 멀티쓰레드에 안전하다
+    // TODO 스탭익스큐션에 클래스도 넣을수 있나?
     @Bean(PREFIX + "ItemReader")
     @StepScope
     public ItemReader<? extends ProductVO> itemReader(@Value("#{stepExecutionContext['product']}") ProductVO productVO) {
@@ -74,11 +81,12 @@ public class ApiStepConfig {
 
         Map<String, Order> sortKey = new HashMap<>();
         sortKey.put("id", Order.DESCENDING);
-        queryProvider.setSortKeys(sortKey);
+        queryProvider.setSortKeys(sortKey); // 정렬조건 세팅
 
+        // 조회시 사용하는 파라미터
         reader.setParameterValues(QueryGenerator.getParameterForQuery("type", productVO.getType()));
 
-        return null;
+        return reader;
     }
 
     private Function<? super ProductVO, ? extends ProductVO> itemPocessor() {

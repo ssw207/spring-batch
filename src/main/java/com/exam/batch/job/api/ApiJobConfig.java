@@ -19,12 +19,15 @@ public class ApiJobConfig {
     private final JobBuilderFactory jobBuilderFactory;
     private final StepBuilderFactory stepBuilderFactory;
     private final ApiStartTasklet apiStartTasklet;
-    private final ApiEndTasklet apiEndTaskelt;
-    private Step jobStep;
+    private final ApiEndTasklet apiEndTasklet;
+    private final Step jobStep;
 
     /**
-     * API전체 통신 시작 - 종료등 요청만 실행
-     * 실제 로직은 jobStep 에서 실행
+     * API 관련 JOB을 총괄하는 클래스
+     * 책임
+     * - 배치 시작전 작업
+     * - 실제 배치 처리 위임
+     * - 배치 종료후 작업
      */
     @Bean(PREFIX + "Job")
     public Job job() {
@@ -34,8 +37,6 @@ public class ApiJobConfig {
                 .next(jobStep)
                 .next(apiStep2())
                 .build();
-
-
     }
 
     @Bean(PREFIX + "Step1")
@@ -48,7 +49,7 @@ public class ApiJobConfig {
     @Bean(PREFIX + "Step2")
     public Step apiStep2() {
         return stepBuilderFactory.get(PREFIX + "Step2")
-                .tasklet(apiEndTaskelt)
+                .tasklet(apiEndTasklet)
                 .build();
     }
 }
