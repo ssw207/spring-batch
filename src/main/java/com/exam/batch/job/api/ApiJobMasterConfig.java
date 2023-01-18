@@ -1,6 +1,7 @@
 package com.exam.batch.job.api;
 
 import com.exam.batch.listener.StopWatchJobListener;
+import com.exam.batch.tasklet.ApiEndTasklet;
 import com.exam.batch.tasklet.ApiStartTasklet;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
@@ -12,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @RequiredArgsConstructor
-public class ApiJobConfig {
+public class ApiJobMasterConfig {
 
     private static final String PREFIX = "api";
 
