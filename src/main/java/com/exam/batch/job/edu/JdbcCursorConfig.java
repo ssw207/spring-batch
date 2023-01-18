@@ -1,7 +1,7 @@
-package com.exam.batch.job;
+package com.exam.batch.job.edu;
 
-import javax.sql.DataSource;
-
+import com.exam.batch.domain.Product;
+import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
@@ -12,9 +12,7 @@ import org.springframework.batch.item.database.builder.JdbcCursorItemReaderBuild
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.exam.batch.domain.Product;
-
-import lombok.RequiredArgsConstructor;
+import javax.sql.DataSource;
 
 @Configuration
 @RequiredArgsConstructor
@@ -23,7 +21,6 @@ public class JdbcCursorConfig {
     private final JobBuilderFactory jobBuilderFactory;
     private final StepBuilderFactory stepBuilderFactory;
     private final DataSource dataSource;
-
 
 
     @Bean

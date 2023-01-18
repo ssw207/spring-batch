@@ -1,7 +1,10 @@
-package com.exam.batch.job;
+package com.exam.batch.job.edu;
 
 import com.exam.batch.domain.Customer;
 import com.exam.batch.domain.Product;
+import com.exam.batch.listener.CustomItemProcessorListener;
+import com.exam.batch.listener.CustomItemReadListener;
+import com.exam.batch.listener.CustomItemWiterListener;
 import com.exam.batch.listener.StopWatchJobListener;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +22,8 @@ import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilde
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.core.task.TaskExecutor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import javax.persistence.EntityManagerFactory;
 import java.util.HashMap;
@@ -27,42 +32,45 @@ import java.util.Map;
 @Slf4j
 @Configuration
 @RequiredArgsConstructor
-public class AsyncProcessorJobConfig {
+public class MultiThreadJobConfig {
 
     private final JobBuilderFactory jobBuilderFactory;
     private final StepBuilderFactory stepBuilderFactory;
     private final EntityManagerFactory emf;
 
     @Bean
-    public Job asyncJob() {
-        return jobBuilderFactory.get("asyncJob")
-                .start(asyncStep())
+    public Job multiThreadJob() {
+        return jobBuilderFactory.get("multiThreadJob")
+                .start(multiThreadStep())
                 .listener(new StopWatchJobListener())
                 .build();
     }
 
     @Bean
-    public Step normalStep() {
-        return stepBuilderFactory.get("normalStep")
+    public Step multiThreadStep() {
+        return stepBuilderFactory.get("multiThreadStep")
                 .<Product, Customer>chunk(100)
-                .reader(testJpaPagingReader())
-                .processor(custItemProcessor())
-                .writer(customItemWriter())
+                .reader(testJpaPagingReader2())
+                .listener(new CustomItemReadListener())
+                .processor(custItemProcessor2())
+                .listener(new CustomItemProcessorListener())
+                .writer(customItemWriter2())
+                .listener(new CustomItemWiterListener())
+                .taskExecutor(taskExecutor()) // 추가만하면 자동으로 비동기 실행을한다
                 .build();
     }
 
     @Bean
-    public Step asyncStep() {
-        return stepBuilderFactory.get("asyncStep")
-                .<Product, Customer>chunk(100)
-                .reader(testJpaPagingReader())
-                .processor(asyncProcessor())
-                .writer(awyncItemWriter())
-                .build();
+    public TaskExecutor taskExecutor() {
+        ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
+        taskExecutor.setCorePoolSize(4);
+        taskExecutor.setMaxPoolSize(8);
+        taskExecutor.setThreadNamePrefix("async-thread");
+        return taskExecutor;
     }
 
     @Bean
-    public ItemProcessor<Product, Customer> custItemProcessor() {
+    public ItemProcessor<Product, Customer> custItemProcessor2() {
         return item -> {
             try {
                 Thread.sleep(30);
@@ -73,7 +81,7 @@ public class AsyncProcessorJobConfig {
         };
     }
 
-    private ItemWriter<Customer> customItemWriter() {
+    private ItemWriter<Customer> customItemWriter2() {
         return new JpaItemWriterBuilder<Customer>()
                 .usePersist(true)
                 .entityManagerFactory(emf)
@@ -81,17 +89,15 @@ public class AsyncProcessorJobConfig {
     }
 
     @Bean
-    public AsyncItemProcessor asyncProcessor() {
+    public ItemProcessor multiThreadProcessor() {
         AsyncItemProcessor<Product, Customer> processor = new AsyncItemProcessor<>();
-        processor.setDelegate(custItemProcessor()); // 비동기로 위임
+        processor.setDelegate(custItemProcessor2()); // 비동기로 위임
         processor.setTaskExecutor(new SimpleAsyncTaskExecutor());
-        //processor.afterPropertiesSet(); bean으로 등록하지 않은경우 실행해야함
-
         return processor;
     }
 
     @Bean
-    public ItemReader<Product> testJpaPagingReader() {
+    public ItemReader<Product> testJpaPagingReader2() {
         Map<String, Object> parameterValues = new HashMap<>();
         parameterValues.put("price", 0);
 
@@ -105,10 +111,10 @@ public class AsyncProcessorJobConfig {
     }
 
     @Bean
-    public ItemWriter awyncItemWriter() {
+    public ItemWriter multiThreadItemWriter() {
 
         AsyncItemWriter<Customer> writer = new AsyncItemWriter<>();
-        writer.setDelegate(customItemWriter());
+        writer.setDelegate(customItemWriter2());
 
         return writer;
     }

@@ -1,4 +1,4 @@
-package com.exam.batch.job;
+package com.exam.batch.job.file;
 
 import com.exam.batch.domain.Product;
 import com.exam.batch.domain.ProductVO;
@@ -63,14 +63,6 @@ public class FileJobConfig {
                 .build();
     }
 
-    @Bean(PREFIX + "Writer")
-    public ItemWriter<Object> writer() {
-        return new JpaItemWriterBuilder<>()
-                .entityManagerFactory(emf)
-                .usePersist(true)
-                .build();
-    }
-
     @Bean(PREFIX + "Processor")
     public ItemProcessor<ProductVO, Product> processor() {
         return item -> {
@@ -80,6 +72,14 @@ public class FileJobConfig {
 
             return product;
         };
+    }
+
+    @Bean(PREFIX + "Writer")
+    public ItemWriter<Object> writer() {
+        return new JpaItemWriterBuilder<>()
+                .entityManagerFactory(emf)
+                .usePersist(true)
+                .build();
     }
 }
 

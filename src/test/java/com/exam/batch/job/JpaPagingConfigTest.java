@@ -1,5 +1,6 @@
 package com.exam.batch.job;
 
+import com.exam.batch.job.edu.JpaPagingConfig;
 import org.junit.Test;
 import org.junit.jupiter.api.Disabled;
 import org.junit.runner.RunWith;

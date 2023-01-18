@@ -1,4 +1,4 @@
-package com.exam.batch.job;
+package com.exam.batch.job.edu;
 
 import com.exam.batch.listener.StopWatchJobListener;
 import com.exam.batch.step.SumTasklet;

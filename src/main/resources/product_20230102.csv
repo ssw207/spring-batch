@@ -1,7 +1,31 @@
-id,name,price
-1,user1,1
-2,user2,2
-3,user3,3
-4,user4,4
-5,user5,5
-6,user5,6
+id , name   , price , type
+1  , user1  , 1     , 1
+2  , user2  , 2     , 2
+3  , user3  , 3     , 3
+4  , user4  , 4     , 4
+5  , user5  , 5     , 5
+6  , user6  , 6     , 6
+7  , user7  , 7     , 7
+8  , user8  , 8     , 8
+9  , user9  , 9     , 9
+10 , user10 , 10    , 10
+11 , user11 , 11    , 11
+12 , user12 , 12    , 12
+13 , user13 , 13    , 13
+14 , user14 , 14    , 14
+15 , user15 , 15    , 15
+16 , user16 , 16    , 16
+17 , user17 , 17    , 17
+18 , user18 , 18    , 18
+19 , user19 , 19    , 19
+20 , user20 , 20    , 20
+21 , user21 , 21    , 21
+22 , user22 , 22    , 22
+23 , user23 , 23    , 23
+24 , user24 , 24    , 24
+25 , user25 , 25    , 25
+26 , user26 , 26    , 26
+27 , user27 , 27    , 27
+28 , user28 , 28    , 28
+29 , user29 , 29    , 29
+30 , user30 , 30    , 30

@@ -14,7 +14,7 @@ import javax.persistence.Id;
 public class Customer {
 
     @Id
-    private String id;
+    private Long id;
     private String name;
     private int price;
 
