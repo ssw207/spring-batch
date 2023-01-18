@@ -8,6 +8,8 @@ import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -21,7 +23,10 @@ public class ApiJobMasterConfig {
     private final StepBuilderFactory stepBuilderFactory;
     private final ApiStartTasklet apiStartTasklet;
     private final ApiEndTasklet apiEndTasklet;
-    private final Step jobStep;
+
+    @Qualifier("apiMasterStep")
+    @Autowired
+    private Step jobStep;
 
     /**
      * API 관련 JOB을 총괄하는 클래스

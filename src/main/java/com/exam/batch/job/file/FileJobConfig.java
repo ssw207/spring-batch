@@ -59,7 +59,7 @@ public class FileJobConfig {
                 .targetType(ProductVO.class)
                 .linesToSkip(1)
                 .delimited().delimiter(",")
-                .names("id", "name", "price")
+                .names("id", "name", "price", "type")
                 .build();
     }
 
