@@ -8,6 +8,8 @@ import com.exam.batch.partitioner.ProductPartitioner;
 import com.exam.batch.processor.ApiItemProcessor1;
 import com.exam.batch.processor.ApiItemProcessor2;
 import com.exam.batch.processor.ApiItemProcessor3;
+import com.exam.batch.service.ApiService1;
+import com.exam.batch.service.ApiService2;
 import com.exam.batch.writer.ApiItemWriter1;
 import com.exam.batch.writer.ApiItemWriter2;
 import com.exam.batch.writer.ApiItemWriter3;
@@ -45,10 +47,13 @@ import java.util.Map;
 public class ApiStepConfig {
 
     private static final String PREFIX = "apiStep";
+    private static int CHUNK_SIZE = 10;
 
     private final StepBuilderFactory stepBuilderFactory;
     private final DataSource dataSource;
-    private static int CHUNK_SIZE = 10;
+    private final ApiService1 apiService1;
+    private final ApiService2 apiService2;
+    private final ApiService2 apiService3;
 
     @Bean
     public Step apiMasterStep() {
@@ -128,9 +133,11 @@ public class ApiStepConfig {
 
     private Map<String, ItemWriter<ApiRequestVO>> getItemWriterMap() {
         Map<String, ItemWriter<ApiRequestVO>> writerMap = new HashMap<>();
-        writerMap.put("1", new ApiItemWriter1());
-        writerMap.put("2", new ApiItemWriter2());
-        writerMap.put("3", new ApiItemWriter3());
+        
+        writerMap.put("1", new ApiItemWriter1(apiService1));
+        writerMap.put("2", new ApiItemWriter2(apiService2));
+        writerMap.put("3", new ApiItemWriter3(apiService3));
+
         return writerMap;
     }
 
@@ -148,3 +155,4 @@ public class ApiStepConfig {
         return taskExecutor;
     }
 }
+
