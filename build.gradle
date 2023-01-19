@@ -24,8 +24,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.batch:spring-batch-integration'
-    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    implementation 'org.springframework.batch:spring-batch-integration'
 
+    developmentOnly 'org.apache.httpcomponents:httpclient:4.3.1'
 
     runtimeOnly 'com.h2database:h2'
     runtimeOnly 'mysql:mysql-connector-java'

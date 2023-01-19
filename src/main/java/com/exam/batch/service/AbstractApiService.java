@@ -17,6 +17,18 @@ import java.util.List;
 public abstract class AbstractApiService {
 
     public ApiResponseVO service(List<? extends ApiRequestVO> apiRequestVO) {
+        RestTemplate restTemplate = createRestTemplate();
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+
+        ApiInfo apiInfo = ApiInfo.builder()
+                .apiRequestList(apiRequestVO)
+                .build();
+
+        return doApiService(restTemplate, apiInfo);
+    }
+
+    private static RestTemplate createRestTemplate() {
         RestTemplate restTemplate = new RestTemplateBuilder().errorHandler(new ResponseErrorHandler() {
             @Override
             public boolean hasError(ClientHttpResponse response) throws IOException {
@@ -31,14 +43,7 @@ public abstract class AbstractApiService {
 
         restTemplate.setRequestFactory(new HttpComponentsClientHttpRequestFactory());
 
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-
-        ApiInfo apiInfo = ApiInfo.builder()
-                .apiRequestList(apiRequestVO)
-                .build();
-
-        return doApiService(restTemplate, apiInfo);
+        return restTemplate;
     }
 
     protected abstract ApiResponseVO doApiService(RestTemplate restTemplate, ApiInfo apiInfo);
