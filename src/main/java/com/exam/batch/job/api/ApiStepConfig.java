@@ -8,7 +8,6 @@ import com.exam.batch.partitioner.ProductPartitioner;
 import com.exam.batch.processor.ApiItemProcessor1;
 import com.exam.batch.processor.ApiItemProcessor2;
 import com.exam.batch.processor.ApiItemProcessor3;
-import com.exam.batch.repository.ProductRepository;
 import com.exam.batch.writer.ApiItemWriter1;
 import com.exam.batch.writer.ApiItemWriter2;
 import com.exam.batch.writer.ApiItemWriter3;
@@ -50,7 +49,6 @@ public class ApiStepConfig {
     private final StepBuilderFactory stepBuilderFactory;
     private final DataSource dataSource;
     private static int CHUNK_SIZE = 10;
-    private final ProductRepository productRepository;
 
     @Bean
     public Step apiMasterStep() {
@@ -88,13 +86,14 @@ public class ApiStepConfig {
         MySqlPagingQueryProvider queryProvider = new MySqlPagingQueryProvider(); // mysql용 쿼리생성기 =
         queryProvider.setSelectClause("id, name, price, type"); // 조회 걸럼
         queryProvider.setFromClause("from product");
-        queryProvider.setFromClause("where type = :type");
+        queryProvider.setWhereClause("where type = :type");
 
         Map<String, Order> sortKey = new HashMap<>();
         sortKey.put("id", Order.DESCENDING);
         queryProvider.setSortKeys(sortKey); // 정렬조건 세팅
 
         // 조회시 사용하는 파라미터
+        reader.setQueryProvider(queryProvider);
         reader.setParameterValues(QueryGenerator.getParameterForQuery("type", productVO.getType()));
 
         return reader;
@@ -121,9 +120,7 @@ public class ApiStepConfig {
 
     @Bean(PREFIX + "ItemWriter")
     public ItemWriter itemWriter() {
-        WriterClassifier classifier = new WriterClassifier();
-        classifier.setProcessorMap(getItemWriterMap());
-
+        WriterClassifier classifier = new WriterClassifier(getItemWriterMap());
         ClassifierCompositeItemWriter<ApiRequestVO> processor = new ClassifierCompositeItemWriter<>();
         processor.setClassifier(classifier);
         return processor;
@@ -134,9 +131,9 @@ public class ApiStepConfig {
         writerMap.put("1", new ApiItemWriter1());
         writerMap.put("2", new ApiItemWriter2());
         writerMap.put("3", new ApiItemWriter3());
-        return null;
+        return writerMap;
     }
-    
+
     @Bean(PREFIX + "Partitioner")
     public ProductPartitioner partitioner() {
         return new ProductPartitioner(dataSource);

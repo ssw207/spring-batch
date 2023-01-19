@@ -1,17 +1,16 @@
 package com.exam.batch.job.classifier;
 
 import com.exam.batch.domain.ApiRequestVO;
-import lombok.Setter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.classify.Classifier;
 
-import java.util.HashMap;
 import java.util.Map;
 
-@Setter
+@RequiredArgsConstructor
 public class WriterClassifier implements Classifier<ApiRequestVO, ItemWriter<? super ApiRequestVO>> {
 
-    private Map<String, ItemWriter<ApiRequestVO>> processorMap = new HashMap<>();
+    private final Map<String, ItemWriter<ApiRequestVO>> processorMap;
 
     @Override
     public ItemWriter<? super ApiRequestVO> classify(ApiRequestVO classifiable) {
