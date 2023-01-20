@@ -25,7 +25,7 @@ public class ApiStartTasklet implements Tasklet {
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
         // TODO tasklet에서 체크하면 이미 job이 실행된 상태이기 떄문에 현재 파라미터가 메타데이터에 저장되서 항상 실패한다. job바깥으로 이동해야됨
-        validateParameter(contribution, "reqYmd");
+        //validateParameter(contribution, "reqYmd");
 
 
         log.info("Api 서비스 시작");
