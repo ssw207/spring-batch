@@ -8,13 +8,14 @@ import javax.persistence.EntityManagerFactory;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
+import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.database.builder.JpaItemWriterBuilder;
 import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -34,30 +35,27 @@ public class DbMigJob {
 	private final EntityManagerFactory emf;
 
 	@Bean
-	public Job dbMigJob() {
+	public Job myDbMigJob() {
 		return jobBuilderFactory.get("migJob")
 			.start(migStep())
+			.incrementer(new RunIdIncrementer())
 			.build();
 	}
 
 	@Bean
+	@JobScope
 	public Step migStep() {
 		return stepBuilderFactory.get("migStep")
 			.<Product, Product2>chunk(1000)
-			.reader(migReader(null, null))
+			.reader(migReader())
 			.writer(migWriter())
 			.build();
 	}
 	@Bean
 	@StepScope
-	public ItemReader<Product> migReader(
-		@Value("#{jobParameters[id]}") String jobId,
-		@Value("#{stepExecutionContext[id]}") String stepId
-	) {
-		String id = (stepId == null) ? jobId : stepId;
-
+	public ItemReader<Product> migReader() {
 		Map<String, Object> param = new HashMap<>();
-		param.put("id", id);
+		param.put("id", 0L);
 
 		return new JpaPagingItemReaderBuilder<Product>()
 			.entityManagerFactory(emf)
