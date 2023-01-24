@@ -32,6 +32,7 @@ public class DbMigJob {
 	private final JobBuilderFactory jobBuilderFactory;
 	private final StepBuilderFactory stepBuilderFactory;
 	private final EntityManagerFactory emf;
+	private Long lastId = 0L;
 
 	@Bean
 	public Job myDbMigJob() {
@@ -49,15 +50,26 @@ public class DbMigJob {
 			.writer(migWriter())
 			.build();
 	}
+
 	@Bean
 	public ItemReader<Product> migReader() {
 
 		Map<String, Object> param = new HashMap<>();
-		param.put("id", 0L);
+		param.put("id", lastId);
 		JpaPagingItemReader<Product> reader = new JpaPagingItemReader<>() {
 			@Override
 			public int getPage() { // 페이징 사이즈를 0으로 고정한다
 				return 0;
+			}
+
+			@Override
+			protected void doReadPage() {
+				super.doReadPage();
+
+				if (super.results != null) {
+					lastId = results.get(results.size() - 1).getId();
+				}
+				log.info("lastId : {}", lastId);
 			}
 		};
 
@@ -76,5 +88,4 @@ public class DbMigJob {
 			.entityManagerFactory(emf)
 			.build();
 	}
-
 }
